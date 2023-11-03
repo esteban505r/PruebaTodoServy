@@ -17,12 +17,15 @@ val Gray50 = Color(0xFF4E4E4E)
 val Gray40 = Color(0xFFF7F7F7)
 val Gray30 = Color(0xFFBFBFBF)
 val Gray20 = Color(0xFFEFEFEF)
+val Gray10 = Color(0xFFF8F8F8)
 
 val Yellow20 = Color(0xFFEDF4D8)
+val Yellow40 = Color(0xFFFF803B)
 
 val Green30 = Color(0xFFA2D033)
 val Green50 = Color(0xFFA2D033)
 val Green70 = Color(0xFF4CAF50)
+val Blue40 = Color(0xFF1775FF)
 val Red40 = Color(0xFFF8383E)
 
 val DeepPurple = Color(0xFF5D1049)

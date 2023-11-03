@@ -2,6 +2,7 @@ package com.esteban.lopez.pruebatodoservy.ui.screens
 
 import IconPickerDialog
 import TimePickerDialog
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -27,6 +28,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -37,6 +39,7 @@ import com.esteban.lopez.pruebatodoservy.model.model.TaskColor
 import com.esteban.lopez.pruebatodoservy.model.model.TaskIcon
 import com.esteban.lopez.pruebatodoservy.model.model.db.Task
 import com.esteban.lopez.pruebatodoservy.model.model.db.TaskStatus
+import com.esteban.lopez.pruebatodoservy.model.state.CreateTaskSideEffect
 import com.esteban.lopez.pruebatodoservy.ui.composables.PageTitle
 import com.esteban.lopez.pruebatodoservy.viewmodel.CreateTaskViewModel
 import kotlinx.coroutines.launch
@@ -47,6 +50,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateTaskScreen(navController: NavController,
+                     taskId:String? = null,
                      viewModel: CreateTaskViewModel = koinViewModel()) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -59,6 +63,38 @@ fun CreateTaskScreen(navController: NavController,
     var showIconPicker by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+
+
+    LaunchedEffect(null) {
+        if(taskId!=null){
+            viewModel.getById(taskId.toLong())
+        }
+
+        viewModel.container.sideEffectFlow.collect { sideEffect ->
+            when (sideEffect) {
+                is CreateTaskSideEffect.Toast -> {
+                    Toast.makeText(context, sideEffect.text, Toast.LENGTH_SHORT).show()
+                }
+                is CreateTaskSideEffect.Popup -> {
+                    navController.popBackStack()
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(null){
+        viewModel.container.stateFlow.collect{
+            if(it.task!=null){
+                name = it.task.name
+                description = it.task.description
+                selectedStatus = it.task.status
+                endTime = it.task.endTime
+                time = it.task.time
+                taskStyle = Pair(it.task.color,it.task.icon)
+            }
+        }
+    }
 
 
     if(showTimePicker){
@@ -98,7 +134,7 @@ fun CreateTaskScreen(navController: NavController,
                         .fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    PageTitle(text = "Create a task", modifier = Modifier.padding(vertical = 20.dp))
+                    PageTitle(text = if(taskId!=null) "Edit task" else "Create a task", modifier = Modifier.padding(vertical = 20.dp))
                     Spacer(modifier = Modifier.height(16.dp))
                     TextField(
                         value = name,
@@ -213,17 +249,34 @@ fun CreateTaskScreen(navController: NavController,
                                     return@launch
                                 }
 
-                                viewModel.createTask(
-                                    Task(
-                                        name = name,
-                                        description = description,
-                                        status = selectedStatus,
-                                        endTime = endTime,
-                                        time = time,
-                                        color = taskStyle.first!!,
-                                        icon = taskStyle.second!!
+                                if(taskId!=null){
+                                    viewModel.updateTask(
+                                        Task(
+                                            id = taskId.toLong(),
+                                            name = name,
+                                            description = description,
+                                            status = selectedStatus,
+                                            endTime = endTime,
+                                            time = time,
+                                            color = taskStyle.first!!,
+                                            icon = taskStyle.second!!
+                                        )
                                     )
-                                )
+                                }
+                                else {
+                                    viewModel.createTask(
+                                        Task(
+                                            name = name,
+                                            description = description,
+                                            status = selectedStatus,
+                                            endTime = endTime,
+                                            time = time,
+                                            color = taskStyle.first!!,
+                                            icon = taskStyle.second!!
+                                        )
+                                    )
+                                }
+
                                 navController.popBackStack()
                             }
 

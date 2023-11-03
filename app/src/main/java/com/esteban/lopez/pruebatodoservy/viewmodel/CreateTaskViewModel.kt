@@ -20,7 +20,39 @@ class CreateTaskViewModel(private val repository: TasksRepository):
     override val container = container<CreateTaskState, CreateTaskSideEffect>(CreateTaskState())
 
     suspend fun createTask(task:Task) = intent {
-        repository.create(task)
-        postSideEffect(CreateTaskSideEffect.Toast("Task inserted"))
+        val response = repository.create(task)
+        response.fold(
+            {
+                postSideEffect(CreateTaskSideEffect.Toast("Task not created"))
+            },
+            {
+                postSideEffect(CreateTaskSideEffect.Toast("Task created"))
+            })
+    }
+
+    fun getById(id:Long) = intent {
+        val response = repository.getById(id)
+        response.fold(
+            {
+                postSideEffect(CreateTaskSideEffect.Toast("Task not found"))
+                postSideEffect(CreateTaskSideEffect.Popup)
+            },
+            {
+                reduce {
+                    state.copy(task = it)
+                }
+            })
+
+    }
+
+    suspend fun updateTask(task: Task) = intent {
+        val response = repository.update(task)
+        response.fold(
+            {
+                postSideEffect(CreateTaskSideEffect.Toast("Task not found"))
+            },
+            {
+                postSideEffect(CreateTaskSideEffect.Toast("Task updated"))
+            })
     }
 }

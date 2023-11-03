@@ -11,7 +11,7 @@ import java.time.LocalTime
 data class Task(
 
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    val id: Long = 0,
 
     @ColumnInfo(name = "task_name")
     val name: String,

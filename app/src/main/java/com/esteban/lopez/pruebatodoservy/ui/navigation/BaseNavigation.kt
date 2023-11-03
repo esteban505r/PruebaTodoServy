@@ -17,8 +17,9 @@ fun BaseNavigation() {
         composable(BaseScreens.HomeScreen.name) {
             HomeScreen(navController)
         }
-        composable(BaseScreens.CreateTaskScreen.name) {
-            CreateTaskScreen(navController)
+        composable("${BaseScreens.CreateTaskScreen.name}?userId={userId}",
+            arguments = listOf(navArgument("taskId") { type = NavType.StringType; defaultValue = null; nullable = true })) {
+            CreateTaskScreen(navController,it.arguments?.getString("userId"))
         }
     }
 }

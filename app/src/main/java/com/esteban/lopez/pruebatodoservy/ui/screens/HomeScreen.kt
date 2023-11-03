@@ -1,38 +1,46 @@
 package com.esteban.lopez.pruebatodoservy.ui.screens;
 
 
-import TaskListItem
+import com.esteban.lopez.pruebatodoservy.ui.composables.TaskListItem
+import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.NavigationBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.esteban.lopez.pruebatodoservy.model.model.db.Task
+import com.esteban.lopez.pruebatodoservy.R
 import com.esteban.lopez.pruebatodoservy.model.model.db.TaskStatus
+import com.esteban.lopez.pruebatodoservy.model.state.HomeSideEffect
 import com.esteban.lopez.pruebatodoservy.ui.composables.PageTitle
 import com.esteban.lopez.pruebatodoservy.ui.navigation.BaseScreens
-import com.esteban.lopez.pruebatodoservy.ui.theme.Gray50
 import com.esteban.lopez.pruebatodoservy.viewmodel.HomeViewModel
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
-import java.util.Date
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -40,8 +48,21 @@ fun HomeScreen(
 ) {
     val state = homeViewModel.collectAsState().value
 
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+
     LaunchedEffect(null) {
-        homeViewModel.getAll()
+        homeViewModel.getAllByStatus(null)
+        homeViewModel.startTimer()
+        homeViewModel.container.sideEffectFlow.collect {
+            when (it) {
+                is HomeSideEffect.Toast -> {
+                    Toast.makeText(context, it.text, Toast.LENGTH_SHORT).show()
+                }
+                else -> {}
+            }
+        }
     }
 
     Scaffold(
@@ -53,6 +74,62 @@ fun HomeScreen(
             }) {
                 Icon(Icons.Default.Add, contentDescription = "Add")
             }
+        },
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    alwaysShowLabel = false,
+                    selected = state.filterBy == null,
+                    onClick = {
+                        coroutineScope.launch {
+                            homeViewModel.getAllByStatus(null)
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_check_circle_24),
+                            contentDescription = "Icon",
+                            modifier = Modifier.padding(10.dp)
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = "All",
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1,
+                        )
+                    }
+                )
+                for(item in TaskStatus.values()){
+                    NavigationBarItem(
+                        alwaysShowLabel = false,
+                        selected = state.filterBy == item,
+                        onClick = {
+                            coroutineScope.launch {
+                                homeViewModel.getAllByStatus(item,)
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(item.icon),
+                                contentDescription = "Icon",
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = item.text,
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Center,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                        }
+                    )
+                }
+            }
         }
     ) {
         LazyColumn(
@@ -62,13 +139,54 @@ fun HomeScreen(
                 .padding(horizontal = 20.dp),
         ) {
             item {
-                PageTitle(text = "Tasks", modifier = Modifier.padding(vertical = 20.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    PageTitle(text = "Tasks", modifier = Modifier.padding(vertical = 20.dp))
+                    PageTitle(text = state.filterBy?.text?:"All", modifier = Modifier.padding(vertical = 20.dp), color = state.filterBy?.color?:MaterialTheme.colorScheme.primary)
+                }
             }
-            items(state.tasks.size) { index ->
+            items(state.tasks.size,key = {index->state.tasks[index].id}) { index ->
                 TaskListItem(
                     task = state.tasks[index],
-                    onClick = {
-
+                    onClick = {},
+                    onDelete = {
+                        coroutineScope.launch {
+                            homeViewModel.deleteTask(it.id)
+                        }
+                    },
+                    onCancel = {task->
+                        if(task.status!=TaskStatus.CANCELLED) {
+                            coroutineScope.launch {
+                                homeViewModel.updateTask(
+                                    task.copy(
+                                        status = TaskStatus.CANCELLED,
+                                    )
+                                )
+                            }
+                        }
+                    },
+                    onDone = { task ->
+                        if(task.status!=TaskStatus.COMPLETED){
+                            coroutineScope.launch {
+                                homeViewModel.updateTask(
+                                    task.copy(
+                                        status = TaskStatus.COMPLETED,
+                                    ))
+                            }
+                        }
+                    },
+                    onProgress = {task->
+                        if(task.status!=TaskStatus.IN_PROGRESS) {
+                            coroutineScope.launch {
+                                homeViewModel.updateTask(
+                                    task.copy(
+                                        status = TaskStatus.IN_PROGRESS,
+                                    )
+                                )
+                            }
+                        }
+                    },
+                    onEdit = {task->
+                        navController.navigate("${BaseScreens.CreateTaskScreen.name}?userId=${task.id}")
                     }
                 )
             }

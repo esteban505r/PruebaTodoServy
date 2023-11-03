@@ -1,8 +1,15 @@
 package com.esteban.lopez.pruebatodoservy.model.model.db
 
-enum class TaskStatus(val status: String,val text:String) {
-    PENDING("PENDING","Pendiente"),
-    IN_PROGRESS("IN_PROGRESS","En progreso"),
-    COMPLETED("COMPLETED","Completada"),
-    CANCELLED("CANCELLED","Cancelado")
+import androidx.compose.ui.graphics.Color
+import com.esteban.lopez.pruebatodoservy.R
+import com.esteban.lopez.pruebatodoservy.ui.theme.Blue40
+import com.esteban.lopez.pruebatodoservy.ui.theme.Green70
+import com.esteban.lopez.pruebatodoservy.ui.theme.Red40
+import com.esteban.lopez.pruebatodoservy.ui.theme.Yellow40
+
+enum class TaskStatus(val status: String,val text:String,val color: Color,val icon:Int) {
+    PENDING("PENDING","Pending", Yellow40,R.drawable.baseline_check_circle_24),
+    IN_PROGRESS("IN_PROGRESS","In progress", Blue40,R.drawable.baseline_check_circle_24),
+    COMPLETED("COMPLETED","Completed", Green70,R.drawable.baseline_check_circle_24),
+    CANCELLED("CANCELLED","Canceled",Red40,R.drawable.baseline_check_circle_24)
 }
