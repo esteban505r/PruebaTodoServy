@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import com.esteban.lopez.pruebatodoservy.ui.theme.BurntSienna
 import com.esteban.lopez.pruebatodoservy.ui.theme.Cream
 import com.esteban.lopez.pruebatodoservy.ui.theme.DarkSlateGray
+import com.esteban.lopez.pruebatodoservy.ui.theme.DeepOrange
 import com.esteban.lopez.pruebatodoservy.ui.theme.DeepPurple
 import com.esteban.lopez.pruebatodoservy.ui.theme.MistyRose
 import com.esteban.lopez.pruebatodoservy.ui.theme.MutedPink
@@ -13,7 +14,7 @@ import com.esteban.lopez.pruebatodoservy.ui.theme.SlateGray
 
 
 enum class TaskColor(val text: String, val color: Color) {
-    DEEP_PURPLE("DEEP_PURPLE", DeepPurple),
+    DEEP_ORANGE("DEEP_ORANGE", DeepOrange),
     SLATE_GRAY("SLATE_GRAY", SlateGray),
     MUTED_PINK("MUTED_PINK", MutedPink),
     RICH_GOLD("RICH_GOLD", RichGold),

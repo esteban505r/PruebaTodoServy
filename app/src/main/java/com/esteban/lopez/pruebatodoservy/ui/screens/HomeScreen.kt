@@ -3,8 +3,12 @@ package com.esteban.lopez.pruebatodoservy.ui.screens;
 
 import com.esteban.lopez.pruebatodoservy.ui.composables.TaskListItem
 import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -60,6 +65,7 @@ fun HomeScreen(
                 is HomeSideEffect.Toast -> {
                     Toast.makeText(context, it.text, Toast.LENGTH_SHORT).show()
                 }
+
                 else -> {}
             }
         }
@@ -89,7 +95,8 @@ fun HomeScreen(
                         Icon(
                             painter = painterResource(R.drawable.baseline_check_circle_24),
                             contentDescription = "Icon",
-                            modifier = Modifier.padding(10.dp)
+                            modifier = Modifier.padding(10.dp),
+                            tint = if (state.filterBy == null) MaterialTheme.colorScheme.primary else Color.Gray
                         )
                     },
                     label = {
@@ -102,19 +109,20 @@ fun HomeScreen(
                         )
                     }
                 )
-                for(item in TaskStatus.values()){
+                for (item in TaskStatus.values()) {
                     NavigationBarItem(
                         alwaysShowLabel = false,
                         selected = state.filterBy == item,
                         onClick = {
                             coroutineScope.launch {
-                                homeViewModel.getAllByStatus(item,)
+                                homeViewModel.getAllByStatus(item)
                             }
                         },
                         icon = {
                             Icon(
                                 painter = painterResource(item.icon),
                                 contentDescription = "Icon",
+                                tint = if (state.filterBy == item) state.filterBy.color else Color.Gray
                             )
                         },
                         label = {
@@ -132,19 +140,63 @@ fun HomeScreen(
             }
         }
     ) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(it)
+                .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            PageTitle(
+                text = "Tasks",
+                modifier = Modifier.padding(vertical = 20.dp),
+                withLogo = true
+            )
+            PageTitle(
+                text = state.filterBy?.text ?: "All",
+                modifier = Modifier.padding(vertical = 20.dp),
+                color = state.filterBy?.color ?: MaterialTheme.colorScheme.primary
+            )
+        }
+
+        if (state.tasks.isEmpty()) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.empty),
+                    contentDescription = "Empty tasks",
+                    modifier = Modifier
+                        .size(200.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
+                Text(
+                    text = "No tasks",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .padding(20.dp)
+                )
+                Text(
+                    text = "Add one!",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(20.dp)
+                )
+            }
+            return@Scaffold
+        }
+
         LazyColumn(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .padding(it)
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = 20.dp).padding(top = 64.dp),
         ) {
-            item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    PageTitle(text = "Tasks", modifier = Modifier.padding(vertical = 20.dp))
-                    PageTitle(text = state.filterBy?.text?:"All", modifier = Modifier.padding(vertical = 20.dp), color = state.filterBy?.color?:MaterialTheme.colorScheme.primary)
-                }
-            }
-            items(state.tasks.size,key = {index->state.tasks[index].id}) { index ->
+            items(state.tasks.size, key = { index -> state.tasks[index].id }) { index ->
                 TaskListItem(
                     task = state.tasks[index],
                     onClick = {},
@@ -153,8 +205,8 @@ fun HomeScreen(
                             homeViewModel.deleteTask(it.id)
                         }
                     },
-                    onCancel = {task->
-                        if(task.status!=TaskStatus.CANCELLED) {
+                    onCancel = { task ->
+                        if (task.status != TaskStatus.CANCELLED) {
                             coroutineScope.launch {
                                 homeViewModel.updateTask(
                                     task.copy(
@@ -165,17 +217,18 @@ fun HomeScreen(
                         }
                     },
                     onDone = { task ->
-                        if(task.status!=TaskStatus.COMPLETED){
+                        if (task.status != TaskStatus.COMPLETED) {
                             coroutineScope.launch {
                                 homeViewModel.updateTask(
                                     task.copy(
                                         status = TaskStatus.COMPLETED,
-                                    ))
+                                    )
+                                )
                             }
                         }
                     },
-                    onProgress = {task->
-                        if(task.status!=TaskStatus.IN_PROGRESS) {
+                    onProgress = { task ->
+                        if (task.status != TaskStatus.IN_PROGRESS) {
                             coroutineScope.launch {
                                 homeViewModel.updateTask(
                                     task.copy(
@@ -185,10 +238,22 @@ fun HomeScreen(
                             }
                         }
                     },
-                    onEdit = {task->
+                    onPending = { task ->
+                        if (task.status != TaskStatus.PENDING) {
+                            coroutineScope.launch {
+                                homeViewModel.updateTask(
+                                    task.copy(
+                                        status = TaskStatus.PENDING,
+                                    )
+                                )
+                            }
+                        }
+                    },
+                    onEdit = { task ->
                         navController.navigate("${BaseScreens.CreateTaskScreen.name}?userId=${task.id}")
-                    }
-                )
+                    },
+
+                    )
             }
         }
 

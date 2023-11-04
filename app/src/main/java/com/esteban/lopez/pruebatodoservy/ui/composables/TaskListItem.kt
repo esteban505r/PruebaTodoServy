@@ -56,6 +56,7 @@ import com.esteban.lopez.pruebatodoservy.ui.theme.Gray50
 import com.esteban.lopez.pruebatodoservy.ui.theme.Green50
 import com.esteban.lopez.pruebatodoservy.ui.theme.Green70
 import com.esteban.lopez.pruebatodoservy.ui.theme.Red40
+import com.esteban.lopez.pruebatodoservy.ui.theme.Yellow40
 import com.esteban.lopez.pruebatodoservy.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -72,6 +73,7 @@ fun TaskListItem(
     onCancel: (Task) -> Unit,
     onDelete: (Task) -> Unit,
     onEdit: (Task) -> Unit,
+    onPending: (Task) -> Unit
 ) {
     var show by remember { mutableStateOf(true) }
     var showDeleteDialog by remember {
@@ -114,7 +116,7 @@ fun TaskListItem(
                             text = "Delete task",
                             style = MaterialTheme.typography.labelMedium,
                             fontSize = 24.sp,
-                            color = Blue50,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                         )
@@ -270,6 +272,15 @@ fun TaskListItem(
                                            painterResource(id = R.drawable.baseline_check_circle_24),
                                            tint = Green70,
                                            contentDescription = "Check",
+                                       )
+                                   }
+                                   IconButton(onClick = {
+                                       onPending(task)
+                                   }) {
+                                       Icon(
+                                           painterResource(id = R.drawable.baseline_watch_later_24),
+                                           tint = Yellow40,
+                                           contentDescription = "Pending",
                                        )
                                    }
                                    IconButton(onClick = {

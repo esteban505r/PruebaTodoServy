@@ -44,6 +44,7 @@ import com.esteban.lopez.pruebatodoservy.ui.composables.PageTitle
 import com.esteban.lopez.pruebatodoservy.viewmodel.CreateTaskViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import org.orbitmvi.orbit.ContainerHost
 import java.time.LocalTime
 import java.util.*
 
@@ -116,8 +117,8 @@ fun CreateTaskScreen(navController: NavController,
     }
 
     if(showIconPicker){
-        IconPickerDialog(selectedColor = taskStyle.first?:TaskColor.DEEP_PURPLE , onIconSelected = {
-            taskStyle = taskStyle.copy(first = taskStyle.first?: TaskColor.DEEP_PURPLE,second = it)
+        IconPickerDialog(selectedColor = taskStyle.first?:TaskColor.DEEP_ORANGE , onIconSelected = {
+            taskStyle = taskStyle.copy(first = taskStyle.first?: TaskColor.DEEP_ORANGE,second = it)
         }, onColorSelected = {
             taskStyle = taskStyle.copy(first = it)
         }, onDismissRequest = {

@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.esteban.lopez.pruebatodoservy.model.model.TaskColor
 import com.esteban.lopez.pruebatodoservy.model.model.TaskIcon
+import java.time.LocalDate
 import java.time.LocalTime
 
 @Entity(tableName = "tasks")
@@ -32,5 +33,8 @@ data class Task(
     val color: TaskColor,
 
     @ColumnInfo(name = "time")
-    val time: LocalTime
+    val time: LocalTime,
+
+    @ColumnInfo(name = "updated_at")
+    val updatedAt: LocalDate = LocalDate.now(),
 )

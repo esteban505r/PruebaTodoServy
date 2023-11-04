@@ -28,6 +28,7 @@ val Green70 = Color(0xFF4CAF50)
 val Blue40 = Color(0xFF1775FF)
 val Red40 = Color(0xFFF8383E)
 
+val DeepOrange = Color(0xFFef6432)
 val DeepPurple = Color(0xFF5D1049)
 val SlateGray = Color(0xFF6A7480)
 val MutedPink = Color(0xFFE8BDD1)
